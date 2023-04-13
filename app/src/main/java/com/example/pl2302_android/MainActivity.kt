@@ -228,8 +228,6 @@ class MainActivity : AppCompatActivity() {
             readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
             if (readLen1 > 0) {
                 mHandler1.post {
-                    val result = bytesToHex(readBuf1, readLen1)
-                    Log.e("vaca", "result: $result")
                     val data=readBuf1.copyOfRange(0,readLen1)
                     data.apply {
                         pool = com.example.pl2302_android.uart.add(pool, this)
