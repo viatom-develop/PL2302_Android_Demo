@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private var pool: ByteArray? = null
 
 
-
     var mSerialMulti: PL2303GMultiLib? = null
     private lateinit var gUARTInfoList: Array<UARTSettingInfo?>
     private var iDeviceCount = 0
@@ -72,12 +71,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     /**
      * usb插入会自动调用onResume
      */
     public override fun onResume() {
-        Log.e("vacax","onResume")
+        Log.e("vacax", "onResume")
         super.onResume()
         synchronized(this) {
             resetStatus()
@@ -127,7 +125,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     /**
      * usb拔出监听
      */
@@ -136,7 +133,7 @@ class MainActivity : AppCompatActivity() {
             if (intent.action == mSerialMulti!!.PLUART_MESSAGE) {
                 val extras = intent.extras
                 if (extras != null) {
-                    val str=extras.getString(mSerialMulti!!.PLUART_DETACHED)
+                    val str = extras.getString(mSerialMulti!!.PLUART_DETACHED)
                     DumpMsg("receive data:$str")
                     val index = str?.let { Integer.valueOf(it) }
                     if (DeviceIndex1 == index) {
@@ -198,7 +195,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
         val bytesLeft: ByteArray? = bytes
 
@@ -218,7 +214,7 @@ class MainActivity : AppCompatActivity() {
 
             val temp: ByteArray = bytes.copyOfRange(i, i + 4 + len)
             if (temp.last() == O2CRC.calCRC8(temp)) {
-                    Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
+                Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
                 val o2Response = O2Response(temp)
                 onResponseReceived(o2Response)
                 val tempBytes: ByteArray? =
@@ -235,28 +231,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onResponseReceived(response: O2Response) {
-       when (response.token) {
-           0x53 -> {
-               when(response.len){
-                   0x07->{
-                       when(response.type){
-                           0x01->{
-                               val data=O2Data(response.content)
-                               Log.e("vaca", "response:o2:${data.o2},pr:${data.pr} status:${data.state}  mode:${data.mode}")
-                           }
-                       }
-                   }
-               }
-           }
+        when (response.token) {
+            0x53 -> {
+                when (response.len) {
+                    0x07 -> {
+                        when (response.type) {
+                            0x01 -> {
+                                val data = O2Data(response.content)
+                                Log.e(
+                                    "vaca",
+                                    "response:o2:${data.o2},pr:${data.pr} status:${data.state}  mode:${data.mode}"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
-       }
+            0xff -> {
+                when (response.type) {
+                    0x01 -> {
+                        val data = response.content
+                        val string=String(data)
+                        Log.e("vaca", "response: $string")
+                    }
+                }
+            }
+
+        }
     }
+
     private val readLoop1 = Runnable {
         while (true) {
             readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
             if (readLen1 > 0) {
                 mHandler1.post {
-                    val data=readBuf1.copyOfRange(0,readLen1)
+                    val data = readBuf1.copyOfRange(0, readLen1)
                     data.apply {
                         pool = com.example.pl2302_android.uart.add(pool, this)
                     }
