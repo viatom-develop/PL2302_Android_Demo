@@ -1,36 +1,14 @@
 package com.example.pl2302_android;
-
-
-import java.io.IOException;
-
 import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib;
 import android.os.Bundle;
 import android.os.Handler;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.hardware.usb.UsbManager;
 import android.os.Looper;
-import android.text.Html;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ScrollView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
@@ -38,33 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 
 public class MainActivity extends AppCompatActivity {
-
     private static boolean bDebugMesg = true;
-
     PL2303GMultiLib mSerialMulti;
-    private static final int MENU_ABOUT = 0;
-
-    private static enum DeviceOrderIndex {
-        DevOrder1,
-        DevOrder2,
-        DevOrder3,
-        DevOrder4
-    };
-
-
     private static final int ReadDataBufferSize = 64;
-
     private static final int DeviceIndex1 = 0;
-    private static final int DeviceIndex2 = 1;
-    private static final int DeviceIndex3 = 2;
-    private static final int DeviceIndex4 = 3;
-
-    private Button btOpen1;
-
-
     private static final int MAX_DEVICE_COUNT = 1;
     private static final String ACTION_USB_PERMISSION = "com.prolific.pl2300G_multisimpletest.USB_PERMISSION";
-
     private static final String NULL = null;
     private UARTSettingInfo gUARTInfoList[];
     private int iDeviceCount = 0;
@@ -78,17 +35,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-
-
-
         mSerialMulti = new PL2303GMultiLib((UsbManager) getSystemService(Context.USB_SERVICE),
                 this, ACTION_USB_PERMISSION);
 
         gUARTInfoList = new UARTSettingInfo[MAX_DEVICE_COUNT];
-
-
 
         for(int i=0;i<MAX_DEVICE_COUNT;i++) {
             gUARTInfoList[i] = new UARTSettingInfo();
@@ -107,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         if(mSerialMulti!=null) {
             for(int i=0;i<MAX_DEVICE_COUNT;i++) {
                 gThreadStop[i] = true;
-            }//First to stop app view-thread
+            }
             if(iDeviceCount>0)
                 unregisterReceiver(PLMultiLibReceiver);
             mSerialMulti.PL2303Release();
@@ -115,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onDestroy();
     }
-//  OpenUARTDevice(DeviceIndex1);
 
     public void onResume() {
         super.onResume();
@@ -135,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
                     DumpMsg("iDeviceCount(=1)="+iDeviceCount);
                     if(enableFixedCOMPortMode) {
                         if(mSerialMulti.PL2303getCOMNumber(0)!=NULL || mSerialMulti.PL2303getCOMNumber(0)!="" ) {
-                            btOpen1.setText(mSerialMulti.PL2303getCOMNumber(0));
                             DumpMsg("Button1_COM Number: "+ mSerialMulti.PL2303getCOMNumber(0));
                         }
                     }
@@ -164,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
                     int index = Integer.valueOf(str);
                     if(DeviceIndex1==index) {
                         bDeviceOpened[DeviceIndex1] = false;
-                        if(enableFixedCOMPortMode) btOpen1.setText("Open");
                     }
                 }
             }
@@ -220,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         return new String(hexChars);
     }
 
-    private Runnable ReadLoop1 = new Runnable() {
+    private final Runnable ReadLoop1 = new Runnable() {
         public void run() {
             for (;;) {
                 ReadLen1 = mSerialMulti.PL2303Read(DeviceIndex1, ReadBuf1);
@@ -258,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
             if(!mSerialMulti.PL2303IsDeviceConnectedByIndex(0)) {
                 DumpMsg("DeviceIndex1: disconnect");
                 bDeviceOpened[DeviceIndex1] = false;
-                if(enableFixedCOMPortMode) btOpen1.setText("Open");
             }
         }
     }
@@ -267,12 +213,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void DelayTime(int dwTimeMS) {
         long StartTime, CheckTime;
-
         if(0==dwTimeMS) {
             Thread.yield();
             return;
         }
-
         StartTime = System.currentTimeMillis();
         do {
             CheckTime=System.currentTimeMillis();
