@@ -4,11 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.usb.UsbDevice.getDeviceId
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pl2302_android.uart.bean.O2Cmd
@@ -49,6 +51,10 @@ class MainActivity : AppCompatActivity() {
             gThreadStop[i] = false
             gRunningReadThread[i] = false
             bDeviceOpened[i] = false
+        }
+
+        findViewById<Button>(R.id.get_id).setOnClickListener {
+            writeToUartDevice(O2Cmd.getProductIDInfo())
         }
     }
 
