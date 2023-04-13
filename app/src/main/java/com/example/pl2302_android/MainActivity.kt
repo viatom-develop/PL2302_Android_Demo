@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                        when(response.type){
                            0x01->{
                                val data=O2Data(response.content)
-                               Log.e("vaca", "response:o2:${data.o2},pr:${data.pr}")
+                               Log.e("vaca", "response:o2:${data.o2},pr:${data.pr} status:${data.state}  mode:${data.mode}")
                            }
                        }
                    }
