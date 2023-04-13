@@ -529,6 +529,19 @@ public class MainActivity extends AppCompatActivity {
     private int ReadLen1;
     private byte[] ReadBuf1 = new byte[ReadDataBufferSize];
     Handler mHandler1 = new Handler(Looper.myLooper());
+
+
+    String bytesToHex(byte[] bytes,int len) {
+        char[] hexArray = "0123456789ABCDEF".toCharArray();
+        char[] hexChars = new char[len * 2];
+        for ( int j = 0; j < len; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
     private Runnable ReadLoop1 = new Runnable() {
         public void run() {
 
@@ -544,7 +557,8 @@ public class MainActivity extends AppCompatActivity {
                             for (int j = 0; j < ReadLen1; j++) {
                                 sbHex.append((char) (ReadBuf1[j]&0x000000FF));
                             }
-                            tvRead1.setText(sbHex.toString());
+                            String result=bytesToHex(ReadBuf1,ReadLen1);
+                            tvRead1.setText(result);
                             svReadView1.fullScroll(ScrollView.FOCUS_DOWN);
                         }//run
                     });//Handler.post
