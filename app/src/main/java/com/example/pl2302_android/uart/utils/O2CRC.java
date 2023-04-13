@@ -1,4 +1,4 @@
-package com.example.pl2302_android.uart;
+package com.example.pl2302_android.uart.utils;
 
 public class O2CRC {
     /**

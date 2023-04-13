@@ -1,4 +1,4 @@
-package com.example.pl2302_android.uart;
+package com.example.pl2302_android.uart.bean;
 
 import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib;
 

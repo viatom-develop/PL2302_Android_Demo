@@ -1,8 +1,8 @@
-package com.example.pl2302_android.uart;
+package com.example.pl2302_android.uart.bean;
 
 
 
-import static com.example.pl2302_android.uart.O2CRC.calCRC8;
+import static com.example.pl2302_android.uart.utils.O2CRC.calCRC8;
 
 public class O2Cmd {
 

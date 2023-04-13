@@ -11,8 +11,11 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.pl2302_android.uart.O2CRC
-import com.example.pl2302_android.uart.UARTSettingInfo
+import com.example.pl2302_android.uart.bean.O2Cmd
+import com.example.pl2302_android.uart.bean.O2Data
+import com.example.pl2302_android.uart.bean.O2Response
+import com.example.pl2302_android.uart.utils.O2CRC
+import com.example.pl2302_android.uart.bean.UARTSettingInfo
 import com.example.pl2302_android.uart.toUInt
 import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
 
@@ -40,7 +43,8 @@ class MainActivity : AppCompatActivity() {
         )
         gUARTInfoList = arrayOfNulls(MAX_DEVICE_COUNT)
         for (i in 0 until MAX_DEVICE_COUNT) {
-            gUARTInfoList[i] = UARTSettingInfo()
+            gUARTInfoList[i] =
+                UARTSettingInfo()
             gUARTInfoList[i]!!.iPortIndex = i
             gThreadStop[i] = false
             gRunningReadThread[i] = false
@@ -209,6 +213,8 @@ class MainActivity : AppCompatActivity() {
             val temp: ByteArray = bytes.copyOfRange(i, i + 4 + len)
             if (temp.last() == O2CRC.calCRC8(temp)) {
                     Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
+                val o2Response = O2Response(temp)
+                onResponseReceived(o2Response)
                 val tempBytes: ByteArray? =
                     if (i + 4 + len == bytes.size) null else bytes.copyOfRange(
                         i + 4 + len,
@@ -222,7 +228,23 @@ class MainActivity : AppCompatActivity() {
         return bytesLeft
     }
 
+    private fun onResponseReceived(response: O2Response) {
+       when (response.token) {
+           0x53 -> {
+               when(response.len){
+                   0x07->{
+                       when(response.type){
+                           0x01->{
+                               val data=O2Data(response.content)
+                               Log.e("vaca", "response:o2:${data.o2},pr:${data.pr}")
+                           }
+                       }
+                   }
+               }
+           }
 
+       }
+    }
     private val readLoop1 = Runnable {
         while (true) {
             readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)

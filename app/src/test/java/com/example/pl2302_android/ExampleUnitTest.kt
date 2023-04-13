@@ -1,7 +1,6 @@
 package com.example.pl2302_android
 
-import android.util.Log
-import com.example.pl2302_android.uart.O2Cmd
+import com.example.pl2302_android.uart.bean.O2Cmd
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -44,11 +43,11 @@ class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
         println("yes")
-        val gg1=O2Cmd.getProductIDInfo()
+        val gg1= O2Cmd.getProductIDInfo()
         println(bytesToHex(gg1,gg1.size))
-        val gg2=O2Cmd.getProductVersionInfo()
+        val gg2= O2Cmd.getProductVersionInfo()
         println(bytesToHex(gg2,gg2.size))
-        val gg=O2Cmd.getStatusInfo()
+        val gg= O2Cmd.getStatusInfo()
         println(bytesToHex(gg,gg.size))
 
         println(bytesToHex(O2Cmd.setWorkMode(1)))
