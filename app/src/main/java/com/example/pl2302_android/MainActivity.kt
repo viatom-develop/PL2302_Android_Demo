@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             for (i in 0 until MAX_DEVICE_COUNT) {
                 gThreadStop[i] = true
             }
-            if (iDeviceCount > 0) unregisterReceiver(PLMultiLibReceiver)
+            if (iDeviceCount > 0) unregisterReceiver(pLMultiLibReceiver)
             mSerialMulti!!.PL2303Release()
             mSerialMulti = null
         }
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 val filter = IntentFilter()
                 filter.addAction(mSerialMulti!!.PLUART_MESSAGE)
-                registerReceiver(PLMultiLibReceiver, filter)
+                registerReceiver(pLMultiLibReceiver, filter)
                 Toast.makeText(this, "The $iDeviceCount devices are attached", Toast.LENGTH_SHORT)
                     .show()
                 DumpMsg("The $iDeviceCount devices are attached")
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         openUARTDevice(DeviceIndex1)
     }
 
-    private val PLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    private val pLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == mSerialMulti!!.PLUART_MESSAGE) {
                 val extras = intent.extras
