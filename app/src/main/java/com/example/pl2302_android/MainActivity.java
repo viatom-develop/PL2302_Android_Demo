@@ -10,9 +10,10 @@ import android.hardware.usb.UsbManager;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.pl2302_android.uart.UARTSettingInfo;
 
 
 public class MainActivity extends AppCompatActivity {
