@@ -13,11 +13,8 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.pl2302_android.uart.bean.O2Cmd
-import com.example.pl2302_android.uart.bean.O2Data
-import com.example.pl2302_android.uart.bean.O2Response
+import com.example.pl2302_android.uart.bean.*
 import com.example.pl2302_android.uart.utils.O2CRC
-import com.example.pl2302_android.uart.bean.UARTSettingInfo
 import com.example.pl2302_android.uart.toUInt
 import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
 
@@ -54,6 +51,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.get_id).setOnClickListener {
             writeToUartDevice(O2Cmd.getProductIDInfo())
+        }
+
+        findViewById<Button>(R.id.get_version).setOnClickListener {
+            writeToUartDevice(O2Cmd.getProductVersionInfo())
         }
     }
 
@@ -232,6 +233,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun onResponseReceived(response: O2Response) {
         when (response.token) {
+            0x51->{
+                when (response.len) {
+                    0x04 -> {
+                        when (response.type) {
+                            0x01 -> {
+                                val data = O2Version(response.content)
+                                Log.e(
+                                    "vaca",
+                                    "response:software:${data.softVersion},hardware:${data.hardVersion}"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             0x53 -> {
                 when (response.len) {
                     0x07 -> {
