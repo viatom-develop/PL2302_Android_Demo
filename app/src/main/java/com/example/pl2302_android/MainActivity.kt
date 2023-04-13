@@ -1,24 +1,20 @@
 package com.example.pl2302_android
 
-import androidx.appcompat.app.AppCompatActivity
-import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
-import com.example.pl2302_android.uart.UARTSettingInfo
-import android.os.Bundle
-import android.hardware.usb.UsbManager
-import android.widget.Toast
-import android.content.IntentFilter
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.hardware.usb.UsbManager
+import android.os.Bundle
 import android.os.Handler
-import java.lang.Thread
 import android.os.Looper
-import java.lang.Runnable
-import java.lang.StringBuffer
 import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.pl2302_android.uart.O2CRC
+import com.example.pl2302_android.uart.UARTSettingInfo
 import com.example.pl2302_android.uart.toUInt
-import kotlin.experimental.inv
+import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
 
 class MainActivity : AppCompatActivity() {
 
@@ -106,6 +102,16 @@ class MainActivity : AppCompatActivity() {
         openUARTDevice(DeviceIndex1)
     }
 
+    private fun writeToUartDevice(bytes: ByteArray) {
+        if (mSerialMulti == null) return
+        val index = DeviceIndex1
+        if (!mSerialMulti!!.PL2303IsDeviceConnectedByIndex(index)) return
+        val res = mSerialMulti!!.PL2303Write(index, bytes)
+        if (res < 0) {
+            DumpMsg("w: fail to write: $res")
+            return
+        }
+    }
 
 
 //   usb拔出监听
@@ -197,8 +203,6 @@ class MainActivity : AppCompatActivity() {
             val temp: ByteArray = bytes.copyOfRange(i, i + 4 + len)
             if (temp.last() == O2CRC.calCRC8(temp)) {
                     Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
-//                val bleResponse = O2RingResponse(temp)
-//                onResponseReceived(bleResponse)
                 val tempBytes: ByteArray? =
                     if (i + 4 + len == bytes.size) null else bytes.copyOfRange(
                         i + 4 + len,
