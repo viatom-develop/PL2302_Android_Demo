@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.pl2302_android.databinding.ActivityMainBinding
 import com.example.pl2302_android.uart.bean.*
 import com.example.pl2302_android.uart.utils.O2CRC
 import com.example.pl2302_android.uart.toUInt
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
 
     private var pool: ByteArray? = null
 
+    lateinit var binding:ActivityMainBinding
 
     var mSerialMulti: PL2303GMultiLib? = null
     private lateinit var gUARTInfoList: Array<UARTSettingInfo?>
@@ -34,7 +36,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding=ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         mSerialMulti = PL2303GMultiLib(
             getSystemService(USB_SERVICE) as UsbManager,
             this, ACTION_USB_PERMISSION
@@ -49,11 +52,11 @@ class MainActivity : AppCompatActivity() {
             bDeviceOpened[i] = false
         }
 
-        findViewById<Button>(R.id.get_id).setOnClickListener {
+       binding.getId.setOnClickListener {
             writeToUartDevice(O2Cmd.getProductIDInfo())
         }
 
-        findViewById<Button>(R.id.get_version).setOnClickListener {
+        binding.getVersion.setOnClickListener {
             writeToUartDevice(O2Cmd.getProductVersionInfo())
         }
     }
@@ -243,6 +246,7 @@ class MainActivity : AppCompatActivity() {
                                     "vaca",
                                     "response:software:${data.softVersion},hardware:${data.hardVersion}"
                                 )
+                                binding.info.text = "软件版本:${data.softVersion},硬件版本:${data.hardVersion}"
                             }
                         }
                     }
@@ -259,6 +263,15 @@ class MainActivity : AppCompatActivity() {
                                     "vaca",
                                     "response:o2:${data.o2},pr:${data.pr} status:${data.state}  mode:${data.mode}"
                                 )
+                                binding.o2.text = "O2:${data.o2}"
+                                binding.pr.text = "PR:${data.pr}"
+                                binding.pi.text = "PI:${data.pr}"
+                                if(data.state==0x01){
+                                    binding.state.text = "状态:探头脱落"
+                                }else{
+                                    binding.state.text = "状态:正常"
+                                }
+
                             }
                         }
                     }
@@ -271,6 +284,7 @@ class MainActivity : AppCompatActivity() {
                         val data = response.content
                         val string=String(data)
                         Log.e("vaca", "response: $string")
+                        binding.info.text = "版本ID: "+string
                     }
                 }
             }
