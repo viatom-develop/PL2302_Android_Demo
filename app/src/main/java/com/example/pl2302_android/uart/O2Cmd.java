@@ -89,4 +89,38 @@ public class O2Cmd {
         return cmd;
     }
 
+    /**
+     * Master 使能/禁止 Slave 主动发送数据 上电默认为不主动发送数据。
+     * @param mode 数据 0x00 禁止 Slave 主动发送数据，0x01,0x02 允许 slave 按照指定的类型主动发送数据。
+     * @return
+     */
+    public static byte[] setEnableActivelySendInfo(int mode) {
+        int len = 3;
+        byte[] cmd = new byte[4 + len];
+        cmd[0] = (byte) 0xAA;
+        cmd[1] = (byte) 0x55;
+        cmd[2] = (byte) 0x50;
+        cmd[3] = (byte) len;
+        cmd[4] = (byte) 0x02;
+        cmd[5] = (byte) mode;
+        cmd[6] = calCRC8(cmd);
+        return cmd;
+    }
+
+    /**
+     * Master 命令 Slave 进入休眠模式
+     * @return
+     */
+
+    public static byte[] setSleep() {
+        int len = 2;
+        byte[] cmd = new byte[4 + len];
+        cmd[0] = (byte) 0xAA;
+        cmd[1] = (byte) 0x55;
+        cmd[2] = (byte) 0x50;
+        cmd[3] = (byte) len;
+        cmd[4] = (byte) 0x03;
+        cmd[5] = calCRC8(cmd);
+        return cmd;
+    }
 }

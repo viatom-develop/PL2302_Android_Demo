@@ -52,6 +52,7 @@ class ExampleUnitTest {
         println(bytesToHex(gg,gg.size))
 
         println(bytesToHex(O2Cmd.setWorkMode(1)))
+        println(bytesToHex(O2Cmd.setSleep()))
         assertEquals(4, 2 + 2)
     }
 }
