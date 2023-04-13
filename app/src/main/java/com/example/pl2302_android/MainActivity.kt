@@ -4,13 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.hardware.usb.UsbDevice.getDeviceId
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pl2302_android.databinding.ActivityMainBinding
@@ -179,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         gThreadStop[index] = false
         gRunningReadThread[index] = true
         if (DeviceIndex1 == index) {
-            Thread(readLoop1).start()
+            Thread(readDataLoop).start()
         }
     }
 
@@ -292,7 +290,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val readLoop1 = Runnable {
+
+    /**
+     * 这个地方能收到数据
+     */
+    private val readDataLoop = Runnable {
         while (true) {
             readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
             if (readLen1 > 0) {
