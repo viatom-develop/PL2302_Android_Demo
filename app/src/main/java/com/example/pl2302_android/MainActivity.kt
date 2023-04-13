@@ -62,7 +62,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-// usb插入会自动调用onResume
+
+    /**
+     * usb插入会自动调用onResume
+     */
     public override fun onResume() {
         Log.e("vacax","onResume")
         super.onResume()
@@ -114,7 +117,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-//   usb拔出监听
+
+    /**
+     * usb拔出监听
+     */
     private val pLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == mSerialMulti!!.PLUART_MESSAGE) {
