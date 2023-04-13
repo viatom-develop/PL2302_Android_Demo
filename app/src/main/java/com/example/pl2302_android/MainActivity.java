@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btOpen1;
 
 
-    private static final int MAX_DEVICE_COUNT = 4;
+    private static final int MAX_DEVICE_COUNT = 1;
     private static final String ACTION_USB_PERMISSION = "com.prolific.pl2300G_multisimpletest.USB_PERMISSION";
 
     private static final String NULL = null;
@@ -76,26 +76,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        DumpMsg("Enter onCreate");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
 
-        ArrayAdapter<CharSequence> adapter =
-                ArrayAdapter.createFromResource(this, R.array.BaudRateList, android.R.layout.simple_spinner_item);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-
-        btOpen1 = (Button)findViewById(R.id.OpenButton1);
-        btOpen1.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                Log.e("vaca", "open");
-                OpenUARTDevice(DeviceIndex1);
-            }
-        });
 
         mSerialMulti = new PL2303GMultiLib((UsbManager) getSystemService(Context.USB_SERVICE),
                 this, ACTION_USB_PERMISSION);
@@ -111,29 +97,10 @@ public class MainActivity extends AppCompatActivity {
             gRunningReadThread[i] = false;
             bDeviceOpened[i] = false;
         }
-
-        DumpMsg("Leave onCreate");
     }
 
-    public void onPause() {
-        super.onPause();
-        DumpMsg("Enter onPause");
-        super.onStart();
-        DumpMsg("Leave onPause");
-    }
 
-    public void onRestart() {
-        DumpMsg("Enter onRestart");
-        //super.onStart();
-        super.onRestart();
-        DumpMsg("Leave onRestart");
-    }
 
-    protected void onStop() {
-        DumpMsg("Enter onStop");
-        super.onStop();
-        DumpMsg("Leave onStop");
-    }
 
     protected void onDestroy() {
         DumpMsg("Enter onDestroy");
@@ -147,46 +114,25 @@ public class MainActivity extends AppCompatActivity {
             mSerialMulti = null;
         }
         super.onDestroy();
-        DumpMsg("Leave onDestroy");
     }
-
-    public void onStart() {
-        DumpMsg("Enter onStart");
-        super.onStart();
-        DumpMsg("Leave onStart");
-    }
+//  OpenUARTDevice(DeviceIndex1);
 
     public void onResume() {
-        DumpMsg("Enter onResume");
         super.onResume();
-        String action =  getIntent().getAction();
-        DumpMsg("onResume:"+action);
-
         synchronized (this) {
             ReSetStatus();
-
-
             iDeviceCount = mSerialMulti.PL2303Enumerate();
-
             DelayTime(60);
-
             DumpMsg("enumerate Count="+iDeviceCount);
             if( 0==iDeviceCount ) {
-                SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder1,false,false);
-                SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder2,false,false);
-                SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder3,false,false);
-                SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder4,false,false);
                 Toast.makeText(this, "no more devices found", Toast.LENGTH_SHORT).show();
                 DumpMsg("no more devices found");
             } else {
+                openDevice();
                 DumpMsg("DevOpen[0]="+bDeviceOpened[DeviceIndex1]);
-                DumpMsg("DevOpen[1]="+bDeviceOpened[DeviceIndex2]);
-                DumpMsg("DevOpen[2]="+bDeviceOpened[DeviceIndex3]);
-                DumpMsg("DevOpen[3]="+bDeviceOpened[DeviceIndex4]);
 
                 if(!bDeviceOpened[DeviceIndex1]) {
                     DumpMsg("iDeviceCount(=1)="+iDeviceCount);
-                    SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder1, true, false);
                     if(enableFixedCOMPortMode) {
                         if(mSerialMulti.PL2303getCOMNumber(0)!=NULL || mSerialMulti.PL2303getCOMNumber(0)!="" ) {
                             btOpen1.setText(mSerialMulti.PL2303getCOMNumber(0));
@@ -194,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(mSerialMulti.PLUART_MESSAGE);
                 registerReceiver(PLMultiLibReceiver, filter);
@@ -203,7 +148,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        DumpMsg("Leave onResume");
+    }
+
+    void openDevice(){
+        OpenUARTDevice(DeviceIndex1);
     }
 
     private final BroadcastReceiver PLMultiLibReceiver = new BroadcastReceiver() {
@@ -215,71 +163,43 @@ public class MainActivity extends AppCompatActivity {
                     DumpMsg("receive data:"+str);
                     int index = Integer.valueOf(str);
                     if(DeviceIndex1==index) {
-                        SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder1,false,false);
                         bDeviceOpened[DeviceIndex1] = false;
                         if(enableFixedCOMPortMode) btOpen1.setText("Open");
                     }
-
                 }
             }
-        }//onReceive
+        }
     };
 
-    private void SetEnabledDevControlPanel(DeviceOrderIndex iDev, boolean bOpen, boolean bWrite) {
-        switch(iDev) {
-            case DevOrder1:
-                btOpen1.setEnabled(bOpen);
-                break;
-        }
-    }
 
     private void OpenUARTDevice(int index) {
-
         DumpMsg("Enter OpenUARTDevice: "+String.valueOf(index));
         if(mSerialMulti==null) {
             DumpMsg("Error: mSerialMulti==null");
             return;
         }
-
-
         if(!mSerialMulti.PL2303IsDeviceConnectedByIndex(index)) {
             DumpMsg("Error: !AP_mSerialMulti.PL2303IsDeviceConnectedByIndex(index)");
             return;
         }
-
         boolean res;
         UARTSettingInfo info = gUARTInfoList[index];
         DumpMsg("UARTSettingInfo: index:"+String.valueOf(info.iPortIndex));
-
-
         res = mSerialMulti.PL2303OpenDevByUARTSetting(index, info.mBaudrate, info.mDataBits, info.mStopBits,
                 info.mParity, info.mFlowControl);
         if( !res ) {
             DumpMsg("Error: fail to PL2303OpenDevByUARTSetting");
             return;
         }
-
-        if(DeviceIndex1==index) {
-            SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder1, false, true);
-        }
-
         bDeviceOpened[index] = true;
 
         if(!gRunningReadThread[index]) {
             UpdateDisplayView(index);
         }
-
-        DumpMsg("Open ["+ mSerialMulti.PL2303getDevicePathByIndex(index) +"] successfully!");
-        Toast.makeText(this, "Open ["+ mSerialMulti.PL2303getDevicePathByIndex(index) +"] successfully!", Toast.LENGTH_SHORT).show();
-        DumpMsg("Open ["+ mSerialMulti.PL2303getCOMNumber(index) +"] successfully!");
-        Toast.makeText(this, "Open ["+ mSerialMulti.PL2303getCOMNumber(index) +"] successfully!", Toast.LENGTH_SHORT).show();
-
-        return;
     }
     private void UpdateDisplayView(int index) {
         gThreadStop[index] = false;
         gRunningReadThread[index] = true;
-
         if( DeviceIndex1==index ) {
             new Thread(ReadLoop1).start();
         }
@@ -288,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
     private int ReadLen1;
     private byte[] ReadBuf1 = new byte[ReadDataBufferSize];
     Handler mHandler1 = new Handler(Looper.myLooper());
-
 
     String bytesToHex(byte[] bytes,int len) {
         char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -332,38 +251,18 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
     private void ReSetStatus(){
-
-        DumpMsg("-->> ReSetStatus");
-
-        DumpMsg("-->> PL2303HXD_ReSetStatus");
-
         mSerialMulti.PL2303G_ReSetStatus();
-
-        DumpMsg("<<-- PL2303HXD_ReSetStatus");
         if(bDeviceOpened[DeviceIndex1]) {
-
             DumpMsg("DeviceIndex1 is open");
             if(!mSerialMulti.PL2303IsDeviceConnectedByIndex(0)) {
                 DumpMsg("DeviceIndex1: disconnect");
-                SetEnabledDevControlPanel(DeviceOrderIndex.DevOrder1,false,false);
                 bDeviceOpened[DeviceIndex1] = false;
                 if(enableFixedCOMPortMode) btOpen1.setText("Open");
             }
         }
-
-
-
     }
 
-
-
-
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_ABOUT, 0, "About");
-        return true;
-    }
 
 
     private void DelayTime(int dwTimeMS) {
