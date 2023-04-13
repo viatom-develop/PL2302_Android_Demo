@@ -146,8 +146,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var ReadLen1 = 0
-    private val ReadBuf1 = ByteArray(ReadDataBufferSize)
+    private var readLen1 = 0
+    private val readBuf1 = ByteArray(ReadDataBufferSize)
     var mHandler1 = Handler(Looper.myLooper()!!)
     fun bytesToHex(bytes: ByteArray, len: Int): String? {
         val sb = StringBuffer()
@@ -163,10 +163,10 @@ class MainActivity : AppCompatActivity() {
 
     private val readLoop1 = Runnable {
         while (true) {
-            ReadLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, ReadBuf1)
-            if (ReadLen1 > 0) {
+            readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
+            if (readLen1 > 0) {
                 mHandler1.post {
-                    val result = bytesToHex(ReadBuf1, ReadLen1)
+                    val result = bytesToHex(readBuf1, readLen1)
                     Log.e("vaca", "result: $result")
                 }
             }
@@ -190,17 +190,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun delayTime(dwTimeMS: Int) {
-        val StartTime: Long
-        var CheckTime: Long
+        var checkTime: Long
         if (0 == dwTimeMS) {
             Thread.yield()
             return
         }
-        StartTime = System.currentTimeMillis()
+        val startTime: Long = System.currentTimeMillis()
         do {
-            CheckTime = System.currentTimeMillis()
+            checkTime = System.currentTimeMillis()
             Thread.yield()
-        } while (CheckTime - StartTime <= dwTimeMS)
+        } while (checkTime - startTime <= dwTimeMS)
     }
 
     companion object {
