@@ -16,8 +16,16 @@ import android.os.Looper
 import java.lang.Runnable
 import java.lang.StringBuffer
 import android.util.Log
+import com.example.pl2302_android.uart.O2CRC
+import com.example.pl2302_android.uart.toUInt
+import kotlin.experimental.inv
 
 class MainActivity : AppCompatActivity() {
+
+    private var pool: ByteArray? = null
+
+
+
     var mSerialMulti: PL2303GMultiLib? = null
     private lateinit var gUARTInfoList: Array<UARTSettingInfo?>
     private var iDeviceCount = 0
@@ -25,6 +33,8 @@ class MainActivity : AppCompatActivity() {
     private val gThreadStop = BooleanArray(MAX_DEVICE_COUNT)
     private val gRunningReadThread = BooleanArray(MAX_DEVICE_COUNT)
     private val enableFixedCOMPortMode = false
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -55,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+
+// usb插入会自动调用onResume
     public override fun onResume() {
         Log.e("vacax","onResume")
         super.onResume()
@@ -62,7 +74,6 @@ class MainActivity : AppCompatActivity() {
             resetStatus()
             iDeviceCount = mSerialMulti!!.PL2303Enumerate()
             delayTime(60)
-            Log.e("vacax","device count=$iDeviceCount")
             DumpMsg("enumerate Count=$iDeviceCount")
             if (0 == iDeviceCount) {
                 Toast.makeText(this, "no more devices found", Toast.LENGTH_SHORT).show()
@@ -95,6 +106,9 @@ class MainActivity : AppCompatActivity() {
         openUARTDevice(DeviceIndex1)
     }
 
+
+
+//   usb拔出监听
     private val pLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == mSerialMulti!!.PLUART_MESSAGE) {
@@ -149,7 +163,7 @@ class MainActivity : AppCompatActivity() {
     private var readLen1 = 0
     private val readBuf1 = ByteArray(ReadDataBufferSize)
     var mHandler1 = Handler(Looper.myLooper()!!)
-    fun bytesToHex(bytes: ByteArray, len: Int): String? {
+    private fun bytesToHex(bytes: ByteArray, len: Int): String? {
         val sb = StringBuffer()
         for (i in 0 until len) {
             val hex = Integer.toHexString(bytes[i].toInt() and 0xFF)
@@ -161,6 +175,44 @@ class MainActivity : AppCompatActivity() {
         return sb.toString()
     }
 
+
+
+    private fun handleDataPool(bytes: ByteArray?): ByteArray? {
+        val bytesLeft: ByteArray? = bytes
+
+        if (bytes == null || bytes.size < 6) {
+            return bytes
+        }
+        loop@ for (i in 0 until bytes.size - 5) {
+            if (bytes[i] != 0xAA.toByte() || bytes[i + 1] != 0x55.toByte()) {
+                continue@loop
+            }
+
+            // need content length
+            val len = toUInt(bytes.copyOfRange(i + 3, i + 4))
+            if (i + 4 + len > bytes.size) {
+                continue@loop
+            }
+
+            val temp: ByteArray = bytes.copyOfRange(i, i + 4 + len)
+            if (temp.last() == O2CRC.calCRC8(temp)) {
+                    Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
+//                val bleResponse = O2RingResponse(temp)
+//                onResponseReceived(bleResponse)
+                val tempBytes: ByteArray? =
+                    if (i + 4 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 4 + len,
+                        bytes.size
+                    )
+
+                return handleDataPool(tempBytes)
+            }
+        }
+
+        return bytesLeft
+    }
+
+
     private val readLoop1 = Runnable {
         while (true) {
             readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
@@ -168,6 +220,13 @@ class MainActivity : AppCompatActivity() {
                 mHandler1.post {
                     val result = bytesToHex(readBuf1, readLen1)
                     Log.e("vaca", "result: $result")
+                    val data=readBuf1.copyOfRange(0,readLen1)
+                    data.apply {
+                        pool = com.example.pl2302_android.uart.add(pool, this)
+                    }
+                    pool?.apply {
+                        pool = handleDataPool(pool)
+                    }
                 }
             }
             delayTime(60)
