@@ -24,10 +24,10 @@ class UsbDeviceInfo {
     private boolean s;
     private int t;
     private byte u;
-    a a;
-    a b;
-    a c;
-    a d;
+    UsbUartDevice usbUartDevice1;
+    UsbUartDevice b;
+    UsbUartDevice c;
+    UsbUartDevice d;
 
     UsbDeviceInfo() {
         this.a();
@@ -57,30 +57,30 @@ class UsbDeviceInfo {
         this.q = false;
         this.r = true;
         this.s = false;
-        if (this.a == null) {
-            this.a = new a();
+        if (this.usbUartDevice1 == null) {
+            this.usbUartDevice1 = new UsbUartDevice();
         }
 
         if (this.b == null) {
-            this.b = new a();
+            this.b = new UsbUartDevice();
         }
 
         if (this.c == null) {
-            this.c = new a();
+            this.c = new UsbUartDevice();
         }
 
         if (this.d == null) {
-            this.d = new a();
+            this.d = new UsbUartDevice();
         }
 
-        this.a.a(0);
-        this.b.a(3);
-        this.b.b(15);
-        this.c.a(0);
-        this.c.b(0);
-        this.c.c(0);
-        this.d.a(0);
-        this.d.b(0);
+        this.usbUartDevice1.getP1(0);
+        this.b.getP1(3);
+        this.b.getP2(15);
+        this.c.getP1(0);
+        this.c.getP2(0);
+        this.c.getP3(0);
+        this.d.getP1(0);
+        this.d.getP2(0);
         this.t = 0;
         this.u = 0;
     }
@@ -143,37 +143,37 @@ class UsbDeviceInfo {
 
     public int a(UsbDeviceInfo.GPIOPin var1) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            return this.a.b();
+            return this.usbUartDevice1.getP2();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            return this.b.b();
+            return this.b.getP2();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            return this.c.b();
+            return this.c.getP2();
         } else {
-            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.b() : -1;
+            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.getP2() : -1;
         }
     }
 
     public int b(UsbDeviceInfo.GPIOPin var1) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            return this.a.a();
+            return this.usbUartDevice1.getP1();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            return this.b.a();
+            return this.b.getP1();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            return this.c.a();
+            return this.c.getP1();
         } else {
-            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.a() : -1;
+            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.getP1() : -1;
         }
     }
 
     public int c(UsbDeviceInfo.GPIOPin var1) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            return this.a.c();
+            return this.usbUartDevice1.getP3();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            return this.b.c();
+            return this.b.getP3();
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            return this.c.c();
+            return this.c.getP3();
         } else {
-            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.c() : -1;
+            return var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12 ? this.d.getP3() : -1;
         }
     }
 
@@ -247,39 +247,39 @@ class UsbDeviceInfo {
 
     public void a(UsbDeviceInfo.GPIOPin var1, int var2) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            this.a.b(var2);
+            this.usbUartDevice1.getP2(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            this.b.b(var2);
+            this.b.getP2(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            this.c.b(var2);
+            this.c.getP2(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12) {
-            this.d.b(var2);
+            this.d.getP2(var2);
         }
 
     }
 
     public void b(UsbDeviceInfo.GPIOPin var1, int var2) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            this.a.a(var2);
+            this.usbUartDevice1.getP1(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            this.b.a(var2);
+            this.b.getP1(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            this.c.a(var2);
+            this.c.getP1(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12) {
-            this.d.a(var2);
+            this.d.getP1(var2);
         }
 
     }
 
     public void c(UsbDeviceInfo.GPIOPin var1, int var2) {
         if (var1 == UsbDeviceInfo.GPIOPin.GPIO_01) {
-            this.a.c(var2);
+            this.usbUartDevice1.getP3(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_23) {
-            this.b.c(var2);
+            this.b.getP3(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_4567) {
-            this.c.c(var2);
+            this.c.getP3(var2);
         } else if (var1 == UsbDeviceInfo.GPIOPin.GPIO_TB_12) {
-            this.d.c(var2);
+            this.d.getP3(var2);
         }
 
     }
