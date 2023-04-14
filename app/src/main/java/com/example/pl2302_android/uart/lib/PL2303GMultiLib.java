@@ -1,5 +1,7 @@
 package com.example.pl2302_android.uart.lib;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -358,7 +360,7 @@ public class PL2303GMultiLib {
         this.V = (UsbManager)this.a.getSystemService("usb");
         HashMap var2 = this.V.getDeviceList();
         Iterator var3 = var2.values().iterator();
-        PendingIntent var4 = PendingIntent.getBroadcast(this.a, 0, new Intent(this.W), 0);
+        PendingIntent var4 = PendingIntent.getBroadcast(this.a, 0, new Intent(this.W), 0|FLAG_IMMUTABLE);
 
         while(var3.hasNext()) {
             UsbDevice var5 = (UsbDevice)var3.next();
