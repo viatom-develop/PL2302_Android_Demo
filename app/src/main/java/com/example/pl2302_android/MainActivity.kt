@@ -13,9 +13,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pl2302_android.databinding.ActivityMainBinding
 import com.example.pl2302_android.uart.bean.*
+import com.example.pl2302_android.uart.lib.PL2303GMultiLib
 import com.example.pl2302_android.uart.utils.O2CRC
 import com.example.pl2302_android.uart.toUInt
-import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
 
 class MainActivity : AppCompatActivity() {
 

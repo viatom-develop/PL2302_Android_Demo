@@ -1,6 +1,7 @@
 package com.example.pl2302_android.uart.bean;
 
-import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib;
+
+import com.example.pl2302_android.uart.lib.PL2303GMultiLib;
 
 public class UARTSettingInfo {
     public int iPortIndex = 0;
