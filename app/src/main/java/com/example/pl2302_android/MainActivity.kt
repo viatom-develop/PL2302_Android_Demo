@@ -50,6 +50,9 @@ class MainActivity : AppCompatActivity() {
             bDeviceOpened[i] = false
         }
 
+
+
+
        binding.getId.setOnClickListener {
             writeToUartDevice(O2Cmd.getProductIDInfo())
         }
@@ -72,6 +75,10 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    override fun onStart() {
+        Log.e("vacax", "onStart")
+        super.onStart()
+    }
 
     /**
      * usb插入会自动调用onResume
