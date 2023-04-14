@@ -380,8 +380,7 @@ public class PL2303GMultiLib {
             }
         }
 
-        if (var1 == 0) {
-        }
+
 
         return var1;
     }
