@@ -357,7 +357,7 @@ public class PL2303GMultiLib {
 
     public int PL2303Enumerate() {
         int var1 = 0;
-        this.V = (UsbManager)this.a.getSystemService("usb");
+        this.V = (UsbManager)this.a.getSystemService(Context.USB_SERVICE);
         HashMap var2 = this.V.getDeviceList();
         Iterator var3 = var2.values().iterator();
         PendingIntent var4 = PendingIntent.getBroadcast(this.a, 0, new Intent(this.W), 0|FLAG_IMMUTABLE);
