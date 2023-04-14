@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                                 binding.o2.text = "O2:${data.o2}"
                                 binding.pr.text = "PR:${data.pr}"
-                                binding.pi.text = "PI:${data.pr}"
+                                binding.pi.text = "PI:${data.pi/10}"
                                 if(data.state==0x01){
                                     binding.state.text = "状态:探头脱落"
                                 }else{
