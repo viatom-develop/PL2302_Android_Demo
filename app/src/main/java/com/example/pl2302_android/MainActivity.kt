@@ -3,27 +3,32 @@ package com.example.pl2302_android
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.pl2302_android.databinding.ActivityMainBinding
 import com.example.pl2302_android.uart.bean.*
-import com.example.pl2302_android.uart.utils.O2CRC
 import com.example.pl2302_android.uart.toUInt
-import tw.com.prolific.pl2303gmultilib.PL2303GMultiLib
+import com.example.pl2302_android.uart.utils.O2CRC
+import com.hoho.android.usbserial.driver.UsbSerialPort
+import com.hoho.android.usbserial.driver.UsbSerialProber
+import com.hoho.android.usbserial.util.SerialInputOutputManager
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import java.lang.Exception
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
 
     private var pool: ByteArray? = null
+    var port:UsbSerialPort?=null
 
     lateinit var binding:ActivityMainBinding
 
-    var mSerialMulti: PL2303GMultiLib? = null
+
     private lateinit var gUARTInfoList: Array<UARTSettingInfo?>
     private var iDeviceCount = 0
     private val bDeviceOpened = BooleanArray(MAX_DEVICE_COUNT)
@@ -36,10 +41,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding=ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        mSerialMulti = PL2303GMultiLib(
-            getSystemService(USB_SERVICE) as UsbManager,
-            this, ACTION_USB_PERMISSION
-        )
+
         gUARTInfoList = arrayOfNulls(MAX_DEVICE_COUNT)
         for (i in 0 until MAX_DEVICE_COUNT) {
             gUARTInfoList[i] =
@@ -60,15 +62,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        DumpMsg("Enter onDestroy")
-        if (mSerialMulti != null) {
-            for (i in 0 until MAX_DEVICE_COUNT) {
-                gThreadStop[i] = true
-            }
-            if (iDeviceCount > 0) unregisterReceiver(pLMultiLibReceiver)
-            mSerialMulti!!.PL2303Release()
-            mSerialMulti = null
-        }
+        port?.close()
+
         super.onDestroy()
     }
 
@@ -79,35 +74,24 @@ class MainActivity : AppCompatActivity() {
     public override fun onResume() {
         Log.e("vacax", "onResume")
         super.onResume()
-        synchronized(this) {
-            resetStatus()
-            iDeviceCount = mSerialMulti!!.PL2303Enumerate()
-            delayTime(60)
-            DumpMsg("enumerate Count=$iDeviceCount")
-            if (0 == iDeviceCount) {
-                Toast.makeText(this, "no more devices found", Toast.LENGTH_SHORT).show()
-                DumpMsg("no more devices found")
-            } else {
-                openDevice()
-                DumpMsg("DevOpen[0]=" + bDeviceOpened[DeviceIndex1])
-                if (!bDeviceOpened[DeviceIndex1]) {
-                    DumpMsg("iDeviceCount(=1)=$iDeviceCount")
-                    if (enableFixedCOMPortMode) {
-                        if (mSerialMulti!!.PL2303getCOMNumber(0) !== NULL || mSerialMulti!!.PL2303getCOMNumber(
-                                0
-                            ) !== ""
-                        ) {
-                            DumpMsg("Button1_COM Number: " + mSerialMulti!!.PL2303getCOMNumber(0))
-                        }
-                    }
-                }
-                val filter = IntentFilter()
-                filter.addAction(mSerialMulti!!.PLUART_MESSAGE)
-                registerReceiver(pLMultiLibReceiver, filter)
-                Toast.makeText(this, "The $iDeviceCount devices are attached", Toast.LENGTH_SHORT)
-                    .show()
-                DumpMsg("The $iDeviceCount devices are attached")
+        synchronized(this){
+            // Find all available drivers from attached devices.
+            // Find all available drivers from attached devices.
+            val manager = getSystemService(USB_SERVICE) as UsbManager
+            val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+            if (availableDrivers.isEmpty()) {
+                return
             }
+
+            val driver = availableDrivers[0]
+            val connection = manager.openDevice(driver.device)
+                ?: // add UsbManager.requestPermission(driver.getDevice(), ..) handling here
+                return
+            port = driver.ports[0] // Most devices have just one port (port 0)
+            port?.open(connection)
+            port?.setParameters(38400, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+            val usbIoManager = SerialInputOutputManager(port, this);
+            usbIoManager.start();
         }
     }
 
@@ -116,15 +100,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun writeToUartDevice(bytes: ByteArray) {
-        if (mSerialMulti == null) return
-        val index = DeviceIndex1
-        if (!mSerialMulti!!.PL2303IsDeviceConnectedByIndex(index)) return
-        val res = mSerialMulti!!.PL2303Write(index, bytes)
-        if (res < 0) {
-            DumpMsg("w: fail to write: $res")
-            return
+        try {
+            port?.write(bytes, 1000)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
+
+
 
 
     /**
@@ -132,41 +115,18 @@ class MainActivity : AppCompatActivity() {
      */
     private val pLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == mSerialMulti!!.PLUART_MESSAGE) {
-                val extras = intent.extras
-                if (extras != null) {
-                    val str = extras.getString(mSerialMulti!!.PLUART_DETACHED)
-                    DumpMsg("receive data:$str")
-                    val index = str?.let { Integer.valueOf(it) }
-                    if (DeviceIndex1 == index) {
-                        bDeviceOpened[DeviceIndex1] = false
-                    }
-                }
-            }
+
         }
     }
 
     private fun openUARTDevice(index: Int) {
         DumpMsg("Enter OpenUARTDevice: $index")
-        if (mSerialMulti == null) {
-            DumpMsg("Error: mSerialMulti==null")
-            return
-        }
-        if (!mSerialMulti!!.PL2303IsDeviceConnectedByIndex(index)) {
-            DumpMsg("Error: !AP_mSerialMulti.PL2303IsDeviceConnectedByIndex(index)")
-            return
-        }
+
         val res: Boolean
         val info = gUARTInfoList[index]
         DumpMsg("UARTSettingInfo: index:" + info!!.iPortIndex.toString())
-        res = mSerialMulti!!.PL2303OpenDevByUARTSetting(
-            index, info.mBaudrate, info.mDataBits, info.mStopBits,
-            info.mParity, info.mFlowControl
-        )
-        if (!res) {
-            DumpMsg("Error: fail to PL2303OpenDevByUARTSetting")
-            return
-        }
+
+
         bDeviceOpened[index] = true
         if (!gRunningReadThread[index]) {
             updateDisplayView(index)
@@ -218,7 +178,9 @@ class MainActivity : AppCompatActivity() {
             if (temp.last() == O2CRC.calCRC8(temp)) {
                 Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
                 val o2Response = O2Response(temp)
-                onResponseReceived(o2Response)
+                MainScope().launch {
+                    onResponseReceived(o2Response)
+                }
                 val tempBytes: ByteArray? =
                     if (i + 4 + len == bytes.size) null else bytes.copyOfRange(
                         i + 4 + len,
@@ -296,7 +258,7 @@ class MainActivity : AppCompatActivity() {
      */
     private val readDataLoop = Runnable {
         while (true) {
-            readLen1 = mSerialMulti!!.PL2303Read(DeviceIndex1, readBuf1)
+            readLen1 = 0
             if (readLen1 > 0) {
                 mHandler1.post {
                     val data = readBuf1.copyOfRange(0, readLen1)
@@ -317,14 +279,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun resetStatus() {
-        mSerialMulti!!.PL2303G_ReSetStatus()
-        if (bDeviceOpened[DeviceIndex1]) {
-            DumpMsg("DeviceIndex1 is open")
-            if (!mSerialMulti!!.PL2303IsDeviceConnectedByIndex(0)) {
-                DumpMsg("DeviceIndex1: disconnect")
-                bDeviceOpened[DeviceIndex1] = false
-            }
-        }
+
     }
 
     private fun delayTime(dwTimeMS: Int) {
@@ -353,5 +308,18 @@ class MainActivity : AppCompatActivity() {
                 Log.d("PL2303MultiUSBApp", "A: $s")
             }
         }
+    }
+
+    override fun onNewData(data: ByteArray?) {
+        data?.apply {
+            pool = com.example.pl2302_android.uart.add(pool, this)
+        }
+        pool?.apply {
+            pool = handleDataPool(pool)
+        }
+    }
+
+    override fun onRunError(e: Exception?) {
+
     }
 }
