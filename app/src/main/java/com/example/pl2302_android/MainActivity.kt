@@ -63,12 +63,18 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
+    var dialog:AlertDialog?=null
+
     fun showDialog(s:String){
-        AlertDialog.Builder(this)
+        if(dialog!=null){
+            dialog?.dismiss()
+        }
+        dialog= AlertDialog.Builder(this)
             .setTitle(s)
             .setMessage(s)
             .setPositiveButton(android.R.string.yes,
-                DialogInterface.OnClickListener { dialog, which ->
+                DialogInterface.OnClickListener { dialog_local, which ->
+                    dialog=null
                 })
             .setIcon(android.R.drawable.ic_dialog_alert)
             .show()
