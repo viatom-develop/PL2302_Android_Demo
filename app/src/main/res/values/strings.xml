@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PL2302_android</string>
+    <string name="app_name">PL版本检测</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="open_button">Open</string>
