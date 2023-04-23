@@ -6,10 +6,10 @@ plugins {
 android {
     signingConfigs {
         vaca {
-            storeFile file('..\\key\\vthkey.jks')
-            storePassword 'aaaa2222'
+            storeFile file('..\\key\\vaca.jks')
+            storePassword '0168lgh'
             keyAlias 'key0'
-            keyPassword 'aaaa2222'
+            keyPassword '0168lgh'
         }
     }
     namespace 'com.example.pl2302_android'
