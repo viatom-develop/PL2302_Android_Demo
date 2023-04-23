@@ -5,77 +5,15 @@
     android:layout_height="wrap_content"
     tools:context=".MainActivity" >
 
-
-	<Button
-		android:id="@+id/get_id"
-		android:text="查询产品ID"
-		android:layout_margin="10dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
+<TextView
+		android:id="@+id/textView"
 		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-
-	<Button
-		android:id="@+id/get_version"
-		android:text="查询版本"
-		android:layout_marginStart="150dp"
-		android:layout_marginTop="10dp"
-		app:layout_constraintTop_toTopOf="parent"
+		android:layout_height="wrap_content"
+		android:text="PL2303设备检测"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-
-	<TextView
-		android:id="@+id/info"
-		android:layout_marginStart="10dp"
-		android:layout_marginTop="100dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-
-	<TextView
-		android:id="@+id/o2"
-		android:textSize="30sp"
-		android:text="O2:"
-		android:layout_marginStart="50dp"
-		android:layout_marginTop="200dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-
-	<TextView
-		android:text="PR:"
-		android:id="@+id/pr"
-		android:textSize="30sp"
-		android:layout_marginStart="200dp"
-		android:layout_marginTop="200dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-
-	<TextView
-		android:text="PI:"
-		android:id="@+id/pi"
-		android:textSize="30sp"
-		android:layout_marginStart="350dp"
-		android:layout_marginTop="200dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
-	<TextView
-		android:text="状态:"
-		android:id="@+id/state"
-		android:textSize="30sp"
-		android:layout_marginStart="500dp"
-		android:layout_marginTop="200dp"
-		app:layout_constraintTop_toTopOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"/>
+		app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
