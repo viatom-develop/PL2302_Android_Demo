@@ -1,8 +1,6 @@
 package com.example.pl2302_android
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.os.Handler
@@ -29,28 +27,13 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
     lateinit var binding:ActivityMainBinding
 
 
-    private lateinit var gUARTInfoList: Array<UARTSettingInfo?>
-    private var iDeviceCount = 0
-    private val bDeviceOpened = BooleanArray(MAX_DEVICE_COUNT)
-    private val gThreadStop = BooleanArray(MAX_DEVICE_COUNT)
-    private val gRunningReadThread = BooleanArray(MAX_DEVICE_COUNT)
-    private val enableFixedCOMPortMode = false
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding=ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        gUARTInfoList = arrayOfNulls(MAX_DEVICE_COUNT)
-        for (i in 0 until MAX_DEVICE_COUNT) {
-            gUARTInfoList[i] =
-                UARTSettingInfo()
-            gUARTInfoList[i]!!.iPortIndex = i
-            gThreadStop[i] = false
-            gRunningReadThread[i] = false
-            bDeviceOpened[i] = false
-        }
+
 
        binding.getId.setOnClickListener {
             writeToUartDevice(O2Cmd.getProductIDInfo())
@@ -72,11 +55,9 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
      * usb插入会自动调用onResume
      */
     public override fun onResume() {
-        Log.e("vacax", "onResume")
+        Log.e("vaca", "onResume")
         super.onResume()
         synchronized(this){
-            // Find all available drivers from attached devices.
-            // Find all available drivers from attached devices.
             val manager = getSystemService(USB_SERVICE) as UsbManager
             val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
             if (availableDrivers.isEmpty()) {
@@ -89,15 +70,13 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
                 return
             port = driver.ports[0] // Most devices have just one port (port 0)
             port?.open(connection)
-            port?.setParameters(38400, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+            port?.setParameters(19200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_ODD)
             val usbIoManager = SerialInputOutputManager(port, this);
             usbIoManager.start();
         }
     }
 
-    private fun openDevice() {
-        openUARTDevice(DeviceIndex1)
-    }
+
 
     private fun writeToUartDevice(bytes: ByteArray) {
         try {
@@ -110,40 +89,8 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
 
 
 
-    /**
-     * usb拔出监听
-     */
-    private val pLMultiLibReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-
-        }
-    }
-
-    private fun openUARTDevice(index: Int) {
-        DumpMsg("Enter OpenUARTDevice: $index")
-
-        val res: Boolean
-        val info = gUARTInfoList[index]
-        DumpMsg("UARTSettingInfo: index:" + info!!.iPortIndex.toString())
 
 
-        bDeviceOpened[index] = true
-        if (!gRunningReadThread[index]) {
-            updateDisplayView(index)
-        }
-    }
-
-    private fun updateDisplayView(index: Int) {
-        gThreadStop[index] = false
-        gRunningReadThread[index] = true
-        if (DeviceIndex1 == index) {
-            Thread(readDataLoop).start()
-        }
-    }
-
-    private var readLen1 = 0
-    private val readBuf1 = ByteArray(ReadDataBufferSize)
-    var mHandler1 = Handler(Looper.myLooper()!!)
     private fun bytesToHex(bytes: ByteArray, len: Int): String? {
         val sb = StringBuffer()
         for (i in 0 until len) {
@@ -253,64 +200,10 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
     }
 
 
-    /**
-     * 这个地方能收到数据
-     */
-    private val readDataLoop = Runnable {
-        while (true) {
-            readLen1 = 0
-            if (readLen1 > 0) {
-                mHandler1.post {
-                    val data = readBuf1.copyOfRange(0, readLen1)
-                    data.apply {
-                        pool = com.example.pl2302_android.uart.add(pool, this)
-                    }
-                    pool?.apply {
-                        pool = handleDataPool(pool)
-                    }
-                }
-            }
-            delayTime(60)
-            if (gThreadStop[DeviceIndex1]) {
-                gRunningReadThread[DeviceIndex1] = false
-                return@Runnable
-            }
-        }
-    }
 
-    private fun resetStatus() {
-
-    }
-
-    private fun delayTime(dwTimeMS: Int) {
-        var checkTime: Long
-        if (0 == dwTimeMS) {
-            Thread.yield()
-            return
-        }
-        val startTime: Long = System.currentTimeMillis()
-        do {
-            checkTime = System.currentTimeMillis()
-            Thread.yield()
-        } while (checkTime - startTime <= dwTimeMS)
-    }
-
-    companion object {
-        private const val bDebugMesg = true
-        private const val ReadDataBufferSize = 64
-        private const val DeviceIndex1 = 0
-        private const val MAX_DEVICE_COUNT = 1
-        private const val ACTION_USB_PERMISSION =
-            "com.prolific.pl2300G_multisimpletest.USB_PERMISSION"
-        private val NULL: String? = null
-        private fun DumpMsg(s: Any) {
-            if (true == bDebugMesg) {
-                Log.d("PL2303MultiUSBApp", "A: $s")
-            }
-        }
-    }
 
     override fun onNewData(data: ByteArray?) {
+        Log.e("vaca","receive")
         data?.apply {
             pool = com.example.pl2302_android.uart.add(pool, this)
         }
