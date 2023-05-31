@@ -103,107 +103,53 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
         return sb.toString()
     }
 
+    //get a bytes bit7
+    private fun getBit7(byte: Byte): Int {
+        return (byte.toUByte().toInt() and 0x80) shr 7
+    }
+
+    private fun getInt0to7(byte: Byte): Int {
+        return (byte.toUByte().toInt() and 0x7f)
+    }
+
 
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
         val bytesLeft: ByteArray? = bytes
 
-        if (bytes == null || bytes.size < 6) {
+        if (bytes == null || bytes.size < 5) {
             return bytes
         }
-        loop@ for (i in 0 until bytes.size - 5) {
-            if (bytes[i] != 0xAA.toByte() || bytes[i + 1] != 0x55.toByte()) {
+        loop@ for (i in 0 until bytes.size - 4) {
+            if (getBit7(bytes[i]) != 1) {
                 continue@loop
             }
 
-            // need content length
-            val len = toUInt(bytes.copyOfRange(i + 3, i + 4))
-            if (i + 4 + len > bytes.size) {
-                continue@loop
+            val byte3=bytes[i+2]
+            val byte4=bytes[i+3]
+            val byte5=bytes[i+4]
+            val pr=getInt0to7(byte4)+(getBit7(byte3) shl 7)
+            val o2=getInt0to7(byte5)
+            MainScope().launch {
+                binding.o2.text = "O2:${o2}"
+                binding.pr.text = "PR:${pr}"
             }
+            val tempBytes: ByteArray? =
+                if (i+5 == bytes.size) null else bytes.copyOfRange(
+                    i + 5,
+                    bytes.size
+                )
 
-            val temp: ByteArray = bytes.copyOfRange(i, i + 4 + len)
-            if (temp.last() == O2CRC.calCRC8(temp)) {
-                Log.e("vaca", "temp: ${bytesToHex(temp, temp.size)}")
-                val o2Response = O2Response(temp)
-                MainScope().launch {
-                    onResponseReceived(o2Response)
-                }
-                val tempBytes: ByteArray? =
-                    if (i + 4 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 4 + len,
-                        bytes.size
-                    )
+            return handleDataPool(tempBytes)
 
-                return handleDataPool(tempBytes)
-            }
         }
 
         return bytesLeft
-    }
-
-    private fun onResponseReceived(response: O2Response) {
-        when (response.token) {
-            0x51->{
-                when (response.len) {
-                    0x04 -> {
-                        when (response.type) {
-                            0x01 -> {
-                                val data = O2Version(response.content)
-                                Log.e(
-                                    "vaca",
-                                    "response:software:${data.softVersion},hardware:${data.hardVersion}"
-                                )
-                                binding.info.text = "软件版本:${data.softVersion},硬件版本:${data.hardVersion}"
-                            }
-                        }
-                    }
-                }
-            }
-
-            0x53 -> {
-                when (response.len) {
-                    0x07 -> {
-                        when (response.type) {
-                            0x01 -> {
-                                val data = O2Data(response.content)
-                                Log.e(
-                                    "vaca",
-                                    "response:o2:${data.o2},pr:${data.pr} status:${data.state}  mode:${data.mode}"
-                                )
-                                binding.o2.text = "O2:${data.o2}"
-                                binding.pr.text = "PR:${data.pr}"
-                                binding.pi.text = "PI:${data.pi}"
-                                if(data.state==0x01){
-                                    binding.state.text = "状态:探头脱落"
-                                }else{
-                                    binding.state.text = "状态:正常"
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-
-            0xff -> {
-                when (response.type) {
-                    0x01 -> {
-                        val data = response.content
-                        val string=String(data)
-                        Log.e("vaca", "response: $string")
-                        binding.info.text = "版本ID: "+string
-                    }
-                }
-            }
-
-        }
     }
 
 
 
 
     override fun onNewData(data: ByteArray?) {
-        Log.e("vaca","receive")
         data?.apply {
             pool = com.example.pl2302_android.uart.add(pool, this)
         }
