@@ -35,13 +35,7 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
 
 
 
-       binding.getId.setOnClickListener {
-            writeToUartDevice(O2Cmd.getProductIDInfo())
-        }
 
-        binding.getVersion.setOnClickListener {
-            writeToUartDevice(O2Cmd.getProductVersionInfo())
-        }
     }
 
     override fun onDestroy() {
