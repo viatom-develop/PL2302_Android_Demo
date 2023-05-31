@@ -102,6 +102,9 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
         return (byte.toUByte().toInt() and 0x80) shr 7
     }
 
+    private fun getBit6(byte: Byte): Int {
+        return (byte.toUByte().toInt() and 0x40) shr 6
+    }
     private fun getInt0to7(byte: Byte): Int {
         return (byte.toUByte().toInt() and 0x7f)
     }
@@ -121,7 +124,7 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
             val byte3=bytes[i+2]
             val byte4=bytes[i+3]
             val byte5=bytes[i+4]
-            val pr=getInt0to7(byte4)+(getBit7(byte3) shl 7)
+            val pr=getInt0to7(byte4)+(getBit6(byte3) shl 7)
             val o2=getInt0to7(byte5)
             MainScope().launch {
                 binding.o2.text = "O2:${o2}"
