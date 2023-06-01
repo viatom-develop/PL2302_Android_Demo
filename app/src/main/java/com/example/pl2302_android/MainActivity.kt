@@ -27,12 +27,24 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
     lateinit var binding:ActivityMainBinding
 
 
+    var o2=0;
+    var linkOff=true;
+    var wantO2=false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding=ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        binding.getO2.setOnClickListener {
+            if(linkOff){
+                binding.o2.text="O2:连接断开"
+                wantO2=true;
+            }else{
+                binding.o2.text = "O2:${o2}"
+            }
+        }
 
 
 
@@ -105,6 +117,11 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
     private fun getBit6(byte: Byte): Int {
         return (byte.toUByte().toInt() and 0x40) shr 6
     }
+
+    fun getBit4(byte: Byte): Int {
+        return (byte.toUByte().toInt() and 0x10) shr 4
+    }
+
     private fun getInt0to7(byte: Byte): Int {
         return (byte.toUByte().toInt() and 0x7f)
     }
@@ -125,11 +142,20 @@ class MainActivity : AppCompatActivity(),SerialInputOutputManager.Listener {
             val byte4=bytes[i+3]
             val byte5=bytes[i+4]
             val pr=getInt0to7(byte4)+(getBit6(byte3) shl 7)
-            val o2=getInt0to7(byte5)
-            MainScope().launch {
-                binding.o2.text = "O2:${o2}"
-                binding.pr.text = "PR:${pr}"
+            o2=getInt0to7(byte5)
+
+            linkOff=getBit4(byte3)==1
+            if(o2!=0){
+                if(!linkOff){
+                    if(wantO2){
+                        wantO2=false;
+                        MainScope().launch {
+                            binding.o2.text = "O2:${o2}"
+                        }
+                    }
+                }
             }
+
             val tempBytes: ByteArray? =
                 if (i+5 == bytes.size) null else bytes.copyOfRange(
                     i + 5,
